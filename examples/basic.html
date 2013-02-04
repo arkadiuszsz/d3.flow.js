@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>d3.flow.js</title>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="../src/d3.flow.js"></script>
+</head>
+
+<body>
+  <div id="chart"></div>
+
+  <script>
+    var flow = d3.flow();
+    d3.json("basic.json", function(error, json) {
+      if (error) return console.warn(error);
+      d3.select("#chart").datum(json).call(flow);
+    });
+  </script>
+</body>
+</html>
