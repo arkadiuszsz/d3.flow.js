@@ -1,3 +1,9 @@
 rect {
   shape-rendering: crispEdges;
 }
+
+.link {
+  fill: none;
+  stroke: #000;
+  stroke-opacity: 0.2;
+}
