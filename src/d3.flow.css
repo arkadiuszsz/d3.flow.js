@@ -1,9 +1,11 @@
-rect {
+.node {
   shape-rendering: crispEdges;
+  fill: #f5f5f5;
+  stroke: #ccc;
 }
 
 .link {
   fill: none;
-  stroke: #000;
+  stroke: #ccc;
   stroke-opacity: 0.2;
 }

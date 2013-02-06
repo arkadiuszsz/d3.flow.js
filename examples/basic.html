@@ -8,7 +8,7 @@
   <script src="../src/d3.flow.js"></script>
   <style>
     #chart svg {
-      border: 1px solid black;
+      border: 1px solid #ccc;
     }
   </style>
 </head>
@@ -17,11 +17,60 @@
   <div id="chart"></div>
 
   <script>
+    // Setup the flow.
+    var data = null;
     var flow = d3.flow();
-    d3.json("basic.json", function(error, json) {
-      if (error) return console.warn(error);
-      d3.select("#chart").datum(json).call(flow);
-    });
+    var flag = false;
+    
+    // Create SVG and layout everything.
+    var svg = d3.select("#chart").append("svg");
+    var g = svg.append("g");
+
+    // Update the display with the current data.
+    function update() {
+      // Layout data.
+      flow.layout(data.nodes, data.links);
+
+      // Update SVG container.
+      var margin = flow.margin();
+      svg.attr("width", flow.width()).attr("height", flow.height());
+      g.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+      // Layout links.
+      var link = g.selectAll(".link").data(data.links);
+      link.enter().append("path").attr("class", "link");
+      link.transition()
+        .attr("d", flow.link())
+        .style("stroke-width", function(d) { return d.dy; });
+      link.exit().remove();
+
+      // Layout nodes.
+      var node = g.selectAll(".node").data(data.nodes, function(d) { return d.id });
+      node.enter().append("rect").attr("class", "node")
+        .on("click", function() { load("basic." + (flag ? "1" : "0") + ".json") });
+      node.transition()
+        .attr("x", function(d) { return d.x })
+        .attr("y", function(d) { return d.y })
+        .attr("width", function(d) { return d.width })
+        .attr("height", function(d) { return d.height })
+        .style("fill", function(d) { return d.fill })
+        .style("stroke", function(d) { return d.stroke });
+      node.exit().remove();
+    }
+    
+    // Loads a JSON document and applies it to the chart.
+    function load(url) {
+      flag = !flag;
+      d3.json(url, function(error, json) {
+        if (error) return console.warn(error);
+        data = json;
+        update();
+      });
+    }
+    
+    // Initialize.
+    load("basic.0.json");
+
   </script>
 </body>
 </html>
