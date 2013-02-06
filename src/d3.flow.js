@@ -91,6 +91,14 @@ d3.flow = function(config) {
       svg.attr("width", width).attr("height", height);
       g.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+      // Layout links.
+      var link = g.selectAll(".link")
+        .data(links)
+        .enter().append("path")
+        .attr("class", "link")
+        .attr("d", line)
+        .style("stroke-width", function(d) { return yScale(d.value); });
+
       // Layout nodes.
       var node = g.selectAll(".node")
         .data(nodes)
@@ -102,14 +110,6 @@ d3.flow = function(config) {
         .attr("height", function(d) { return d.height })
         .style("fill", function(d) { return d.fill })
         .style("stroke", function(d) { return d.stroke });
-
-      // Layout links.
-      var link = g.selectAll(".link")
-        .data(links)
-        .enter().append("path")
-        .attr("class", "link")
-        .attr("d", line)
-        .style("stroke-width", function(d) { return yScale(d.value); });
     });
   };
   
