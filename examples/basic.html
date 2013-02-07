@@ -39,17 +39,18 @@
     
       // Layout links.
       g.selectAll(".link").data(data.links).call(function(link) {
+        var i = 0;
         var enter = link.enter(), exit = link.exit();
         link.transition().call(flow.links.position);
         enter.append("path").attr("class", "link")
           .call(flow.links.position)
-          .each(function(path, i) {
+          .each(function(path) {
             var totalLength = this.getTotalLength();
             d3.select(this)
               .attr("stroke-dasharray", totalLength + " " + totalLength)
               .attr("stroke-dashoffset", totalLength)
               .transition()
-                .delay(function(d) { return 250 + (i*100)})
+                .delay(function(d) { return 250 + ((i++)*100)})
                 .duration(250)
                 .ease("linear")
                 .attr("stroke-dashoffset", 0);
@@ -58,6 +59,7 @@
       });
 
       // Layout nodes.
+      var i=0;
       var node = g.selectAll(".node").data(data.nodes, function(d) { return d.id });
       node.transition().call(flow.nodes.position);
       node.enter().append("rect").attr("class", "node")
@@ -67,7 +69,7 @@
         .style("stroke-opacity", 0)
         .call(flow.nodes.position)
         .on("click", function() { load("basic." + (flag ? "1" : "0") + ".json") })
-        .transition().delay(function(d,i) { return 600 + (i*100)})
+        .transition().delay(function(d) { return 600 + ((i++)*100)})
           .style("fill-opacity", 1)
           .style("stroke-opacity", 1)
       node.exit().remove();
