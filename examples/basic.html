@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>d3.flow.js</title>
   <link href="../src/d3.flow.css" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
   <script src="http://d3js.org/d3.v3.js"></script>
   <script src="../src/d3.flow.js"></script>
   <style>
@@ -17,6 +18,10 @@
   <div id="chart"></div>
 
   <script>
+    $(window).resize(function() {
+      update();
+    });
+
     // Setup the flow.
     var data = null;
     var flow = d3.flow();
@@ -29,6 +34,8 @@
 
     // Update the display with the current data.
     function update() {
+      //flow.width($(this).width()-20).height($(this).height()-20)
+
       // Layout data.
       flow.layout(data.nodes, data.links);
 
