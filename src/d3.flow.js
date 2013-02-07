@@ -1,24 +1,58 @@
 (function() {
 
-d3.flow = function(config) {
-  var margin = {top:20, right:20, bottom:20, left:20};
-  var width = 600;
-  var height = 300;
-  var nodeWidth = 120;
-  var verticalGap = 10;
-
+d3.flow = function() {
+  var flow = {nodes:{}, links:{}, scales:{}};
   var xScale = d3.scale.linear();
   var yScale = d3.scale.linear();
 
 
   //----------------------------------------------------------------------------
   //
-  // Layout
+  // Properties
   //
   //----------------------------------------------------------------------------
 
-  function flow(selection) {}
-    
+  var width = 600;
+  flow.width = function(_) {
+    if (!arguments.length) return width;
+    width = _; return flow;
+  };
+
+  var height = 300;
+  flow.height = function(_) {
+    if (!arguments.length) return height;
+    height = _; return flow;
+  };
+
+  var margin = {top:20, right:20, bottom:20, left:20};
+  flow.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _; return flow;
+  };
+
+  var nodeWidth = 120;
+  flow.nodeWidth = function(_) {
+    if (!arguments.length) return nodeWidth;
+    nodeWidth = _; return flow;
+  };
+
+  var verticalGap = 10;
+  flow.verticalGap = function(_) {
+    if (!arguments.length) return verticalGap;
+    verticalGap = _; return flow;
+  };
+
+
+  //----------------------------------------------------------------------------
+  //
+  // Methods
+  //
+  //----------------------------------------------------------------------------
+
+  //------------------------------------
+  // General
+  //------------------------------------
+
   flow.layout = function(nodes, links) {
     // Update node values from links.
     var levels = [];
@@ -42,28 +76,41 @@ d3.flow = function(config) {
       // Add node value to it's depth.
       levels[node.depth].value += node.value;
       levels[node.depth].count++;
-      maxNodesPerLevel = Math.max(maxNodesPerLevel, levels[node.depth].count);
     });
-    
-    // Update X scale.
-    xScale.domain(d3.extent(nodes, function(d) { return d.depth; }))
-      .range([0, width - margin.left - margin.right - nodeWidth]);
 
-    // Set the Y scale and then modify the domain to adjust for spacing.
-    var maxValue = d3.max(levels, function(d) { return d ? d.value : 0; });
-    yScale.domain([0, maxValue])
-      .range([0, height - margin.top - margin.left])
-      .domain([0, maxValue + yScale.invert(verticalGap*(maxNodesPerLevel-1))]);
-      
-    // Layout nodes.
+    flow.scales.update(nodes, links);
+    flow.nodes.layout(nodes);
+    flow.links.layout(nodes, links);
+  }
+  
+
+  //------------------------------------
+  // Nodes
+  //------------------------------------
+
+  flow.nodes.layout = function(nodes) {
     nodes.forEach(function(node) {
       node.x = xScale(node.depth);
       node.y = yScale(node.offsetValue) + (verticalGap * node.index);
       node.width = nodeWidth;
       node.height = yScale(node.value);
     });
+  }
 
-    // Layout links.
+  flow.nodes.position = function(selection) {
+    selection
+      .attr("x", function(d) { return d.x })
+      .attr("y", function(d) { return d.y })
+      .attr("width", function(d) { return d.width })
+      .attr("height", function(d) { return d.height })
+  }
+
+
+  //------------------------------------
+  // Links
+  //------------------------------------
+
+  flow.links.layout = function(nodes, links) {
     nodes.forEach(function(node) {
       var sy = node.y;
       node.sourceLinks.forEach(function(link) {
@@ -76,54 +123,30 @@ d3.flow = function(config) {
       link.dy = yScale(link.value);
     });
   }
-  
-  
-  //----------------------------------------------------------------------------
-  //
-  // Properties
-  //
-  //----------------------------------------------------------------------------
 
-  flow.width = function(_) {
-    if (!arguments.length) return width;
-    width = _; return flow;
-  };
+  flow.links.position = function(selection) {
+    selection
+      .attr("d", flow.link())
+      .style("stroke-width", function(d) { return d.dy; });
+  }
 
-  flow.height = function(_) {
-    if (!arguments.length) return height;
-    height = _; return flow;
-  };
+  //------------------------------------
+  // Scales
+  //------------------------------------
 
-  flow.margin = function(_) {
-    if (!arguments.length) return margin;
-    margin = _; return flow;
-  };
+  flow.scales.update = function(nodes, links) {
+    var maxNodesPerLevel = d3.max(nodes, function(d) { return d.index });
+    
+    // Update X scale.
+    xScale.domain(d3.extent(nodes, function(d) { return d.depth; }))
+      .range([0, width - margin.left - margin.right - nodeWidth]);
 
-  flow.nodeWidth = function(_) {
-    if (!arguments.length) return nodeWidth;
-    nodeWidth = _; return flow;
-  };
-
-  flow.verticalGap = function(_) {
-    if (!arguments.length) return verticalGap;
-    verticalGap = _; return flow;
-  };
-
-
-
-  //----------------------------------------------------------------------------
-  //
-  // Methods
-  //
-  //----------------------------------------------------------------------------
-
-
-
-  //----------------------------------------------------------------------------
-  //
-  // Private Methods
-  //
-  //----------------------------------------------------------------------------
+    // Set the Y scale and then modify the domain to adjust for spacing.
+    var maxValue = d3.max(nodes, function(d) { return d.offsetValue + d.value; });
+    yScale.domain([0, maxValue])
+      .range([0, height - margin.top - margin.left])
+      .domain([0, maxValue + yScale.invert(verticalGap*(maxNodesPerLevel-1))]);
+  }
 
 
   //----------------------------------------------------------------------------
