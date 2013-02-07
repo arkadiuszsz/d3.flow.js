@@ -90,8 +90,9 @@ d3.flow = function() {
 
   flow.nodes.layout = function(nodes) {
     nodes.forEach(function(node) {
+      var source = (node.targetLinks.length > 0 ? node.targetLinks[0].source : {offsetValue:0});
       node.x = xScale(node.depth);
-      node.y = yScale(node.offsetValue) + (verticalGap * node.index);
+      node.y = yScale(source.offsetValue) + yScale(node.offsetValue) + (verticalGap * node.index);
       node.width = nodeWidth;
       node.height = yScale(node.value);
     });
