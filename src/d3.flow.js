@@ -54,33 +54,48 @@ d3.flow = function() {
   //------------------------------------
 
   flow.layout = function(nodes, links) {
-    // Update node values from links.
+    flow.normalize(nodes, links);
+    nodes = nodes.sort(function(a,b) { return b.value-a.value; });
+
+    // Compute index within depth.
     var levels = [];
-    var maxNodesPerLevel = 0;
     nodes.forEach(function(node) {
       if(!levels[node.depth]) levels[node.depth] = {value:0, count:0};
-
-      // The value for the node is the sum of it's source or target links values (which ever is larger).
-      node.sourceLinks = links.filter(function(link) {
-        if(link.source == node.id) link.source = node;
-        return link.source == node;
-      });
-      node.targetLinks = links.filter(function(link) {
-        if(link.target == node.id) link.target = node;
-        return link.target == node;
-      });
-      node.index = levels[node.depth].count;
       node.offsetValue = levels[node.depth].value;
-      node.value = Math.max(d3.sum(node.sourceLinks, function(d) {return d.value}), d3.sum(node.targetLinks, function(d) {return d.value}));
-      
-      // Add node value to it's depth.
+      node.index = levels[node.depth].count;
       levels[node.depth].value += node.value;
       levels[node.depth].count++;
     });
+    
+    // Sort links.
+    nodes.forEach(function(node) {
+      node.sourceLinks = node.sourceLinks.sort(function(a,b) { return a.target.index-b.target.index})
+      node.targetLinks = node.targetLinks.sort(function(a,b) { return a.source.index-b.source.index})
+    });
 
+    // Update everything!
     flow.scales.update(nodes, links);
     flow.nodes.layout(nodes);
     flow.links.layout(nodes, links);
+  }
+  
+  flow.normalize = function(nodes, links) {
+    // Update node values from links.
+    nodes.forEach(function(node) {
+      // The value for the node is the sum of it's source or target links values (which ever is larger).
+      node.sourceLinks = links.filter(function(link) {
+        return link.source == node;
+      });
+      node.targetLinks = links.filter(function(link) {
+        return link.target == node;
+      });
+      node.key = [node.depth, node.id].join(":");
+    });
+
+    // Create keys for each link.
+    links.forEach(function(link) {
+      link.key = [link.source.key, link.target.key].join("-");
+    });
   }
   
 
@@ -145,8 +160,7 @@ d3.flow = function() {
     // Set the Y scale and then modify the domain to adjust for spacing.
     var maxValue = d3.max(nodes, function(d) { return d.offsetValue + d.value; });
     yScale.domain([0, maxValue])
-      .range([0, height - margin.top - margin.left])
-      .domain([0, maxValue + yScale.invert(verticalGap*(maxNodesPerLevel-1))]);
+      .range([0, height - margin.top - margin.left - verticalGap*(maxNodesPerLevel-1)]);
   }
 
 

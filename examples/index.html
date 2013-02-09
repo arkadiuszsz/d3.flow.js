@@ -76,7 +76,7 @@
         .style("stroke", function(d) { return d3.rgb(color(d.id)).darker(2); })
         .style("stroke-opacity", 0)
         .call(flow.nodes.position)
-        .on("click", function(d) { load("basic." + d.id + ".json") })
+        .on("click", function(d) { load(d.id + ".json") })
         .transition().delay(function(d) { return 600 + ((i++)*100)})
           .style("fill-opacity", 1)
           .style("stroke-opacity", 1)
@@ -94,7 +94,7 @@
     }
     
     // Initialize.
-    load("basic.0.json");
+    load("0.json");
 
   </script>
 </body>
